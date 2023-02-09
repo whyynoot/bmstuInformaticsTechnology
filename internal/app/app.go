@@ -2,7 +2,9 @@ package app
 
 import (
 	"bmstuInformaticsTechnologies/internal/configuration"
+	"bmstuInformaticsTechnologies/internal/handlers/products"
 	"bmstuInformaticsTechnologies/pkg/handlers/ping"
+	"bmstuInformaticsTechnologies/pkg/handlers/static"
 	"bmstuInformaticsTechnologies/pkg/logging"
 	"github.com/gorilla/mux"
 	"go.uber.org/zap"
@@ -36,8 +38,15 @@ func NewApplication(cfg *configuration.Config, logger logging.LoggerInterface) (
 		ReadTimeout:  15 * time.Second,
 	}
 
+	// Starting handlers registration
 	pingHandler := ping.Handler{}
 	pingHandler.Register(app.router)
+	
+	staticHandler := static.Handler{}
+	staticHandler.Register(app.router)
+
+	productsHandler := products.NewProductHandler(logger)
+	productsHandler.Register(app.router)
 
 	return &app, nil
 }
@@ -52,5 +61,5 @@ func (app *Application) Run() {
 	}()
 
 	app.logger.Info("Successfully initialized, starting server")
-	app.logger.Error(app.server.ListenAndServe().Error())
+	app.logger.Fatal(app.server.ListenAndServe().Error())
 }

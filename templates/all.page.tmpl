@@ -1,0 +1,61 @@
+<!doctype html>
+<html lang='en'>
+<head>
+    <meta charset='utf-8'>
+    <title>Продукты</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.3.1/dist/css/bootstrap.min.css" integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
+</head>
+<script>
+    window.onload = function(){
+        document.getElementById("showButton").onclick = function () {
+            let showProductCount = document.getElementById("showCount").value - 1;
+
+            if (showProductCount === undefined || showProductCount < -1) {
+                alert("Неправильный ввод!");
+                return;
+            }
+
+            let products = document.getElementsByClassName("product")
+            for (let i = 0; i < products.length; i++) {
+                if (i <= showProductCount) {
+                    products[i].style.visibility = 'visible'
+                }
+                if (i > showProductCount) {
+                    products[i].style.visibility = 'hidden'
+                }
+            }
+        }
+    }
+</script>
+<body>
+<div class="input-group mb-3">
+    <input type="number" id="showCount" class="form-control" placeholder="Введите количество товаров" aria-label="Введите количество товаров" aria-describedby="basic-addon2">
+    <div class="input-group-append">
+        <button class="btn btn-outline-secondary" id="showButton" type="button">Показать</button>
+    </div>
+</div>
+<div class="container">
+    <div class="row justify-content-center text-center">
+        <div class="col-md-8 col-lg-6">
+            <div class="header">
+                <h2>Продукты</h2>
+            </div>
+        </div>
+    </div>
+    <div class="row justify-content-center text-center">
+        {{range $i, $_ := .}}
+        <div class="col-md-6 col-lg-4 col-xl-3">
+            <div class="card product" id="{{$i}}">
+                <img class="card-img-top product-img" src="{{.Image}}" alt="картинка">
+                <div class="card-body">
+                    <h5 class="card-title">{{ .Name }}</h5>
+                    <p class="card-text">{{ .Price }} РУБ</p>
+                    <a href="/product/{{.Name}}" class="btn btn-primary stretched-link">Подробнее</a>
+                </div>
+            </div>
+        </div>
+        {{ end }}
+    </div>
+</div>
+</body>
+</html>

@@ -2,7 +2,7 @@ logging:
   level: debug
   outputPaths:
     - stdout
-    - ./var/logs/
+#    - ./var/logs/
   encoding: json
   encoderConfig:
     messageKey: msg
