@@ -1,0 +1,7 @@
+server:
+  port: 8081
+  timeout: 10
+database:
+  url: url
+  username: user
+  password: password

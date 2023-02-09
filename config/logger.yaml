@@ -1,0 +1,14 @@
+logging:
+  level: debug
+  outputPaths:
+    - stdout
+    - ./var/logs/
+  encoding: json
+  encoderConfig:
+    messageKey: msg
+    timeKey: ts
+    timeEncoder: ISO8601
+    callerEncoder: short
+    callerKey: caller
+    levelKey: lvl
+    levelEncoder: capital
