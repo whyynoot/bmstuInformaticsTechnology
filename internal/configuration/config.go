@@ -2,33 +2,39 @@ package configuration
 
 import (
 	"fmt"
+	"github.com/kelseyhightower/envconfig"
+	_ "github.com/kelseyhightower/envconfig"
 	"gopkg.in/yaml.v3"
 	"io"
 )
 
+const (
+	AppPrefix = ""
+)
+
 // Config Main Configuration of a program containing server and database configuration
-// TODO: Default configuration support
-// TODO: Docker env configuration
-// TODO: Check for necessary configuration, if not replace with default
 type Config struct {
 	Server struct {
-		Port    int `yaml:"port"`
-		Timeout int `yaml:"timeout"`
+		Port    int `envconfig:"PORT" yaml:"port"`
+		Timeout int `envconfig:"TIMEOUT" yaml:"timeout"`
 	} `yaml:"server"`
-	Database struct {
-		URL      string `yaml:"url"`
-		Username string `yaml:"username"`
-		Password string `yaml:"password"`
-	} `yaml:"database"`
+	DataBaseURL string `envconfig:"DATABASE_URL" env-required:"true"`
 }
 
 // NewProgramConfig Constructor for program configuration
 func NewProgramConfig(file io.Reader) (*Config, error) {
 	cfg := Config{}
-	yamlDecoder := yaml.NewDecoder(file)
+	err := envconfig.Process(AppPrefix, &cfg)
+	if err != nil {
+		return nil, fmt.Errorf("configuration error: %v", err)
+	}
 
-	if err := yamlDecoder.Decode(&cfg); err != nil {
-		return nil, fmt.Errorf("unkown yaml configuration recieved: %v", err)
+	if cfg.Server.Port == 0 || cfg.Server.Timeout == 0 {
+		// Getting from other config, if not received from env
+		yamlDecoder := yaml.NewDecoder(file)
+		if err := yamlDecoder.Decode(&cfg); err != nil {
+			return nil, fmt.Errorf("unkown yaml configuration recieved: %v", err)
+		}
 	}
 
 	return &cfg, nil

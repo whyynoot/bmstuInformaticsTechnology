@@ -2,13 +2,19 @@ package app
 
 import (
 	"bmstuInformaticsTechnologies/internal/configuration"
+	"bmstuInformaticsTechnologies/internal/handlers/admin"
 	"bmstuInformaticsTechnologies/internal/handlers/products"
+	"bmstuInformaticsTechnologies/internal/product_service"
+	"bmstuInformaticsTechnologies/pkg/client/postrgresql"
+	"bmstuInformaticsTechnologies/pkg/handlers/notfound"
 	"bmstuInformaticsTechnologies/pkg/handlers/ping"
 	"bmstuInformaticsTechnologies/pkg/handlers/static"
 	"bmstuInformaticsTechnologies/pkg/logging"
+	"context"
 	"github.com/gorilla/mux"
 	"go.uber.org/zap"
 	"net/http"
+	"strconv"
 	"time"
 )
 
@@ -33,20 +39,33 @@ func NewApplication(cfg *configuration.Config, logger logging.LoggerInterface) (
 
 	app.server = &http.Server{
 		Handler:      app.router,
-		Addr:         ":8888",
-		WriteTimeout: 15 * time.Second,
-		ReadTimeout:  15 * time.Second,
+		Addr:         ":" + strconv.Itoa(cfg.Server.Port),
+		WriteTimeout: time.Duration(cfg.Server.Timeout) * time.Second,
+		ReadTimeout:  time.Duration(cfg.Server.Timeout) * time.Second,
 	}
+
+	// Initializing services
+	dbClient, err := postrgresql.NewClient(context.Background(), cfg.DataBaseURL)
+	if err != nil {
+		app.logger.Fatal("unable to connect to database", zap.String("error", err.Error()))
+	}
+
+	productService := product_service.NewProductService(app.logger, dbClient)
 
 	// Starting handlers registration
 	pingHandler := ping.Handler{}
 	pingHandler.Register(app.router)
-	
+
 	staticHandler := static.Handler{}
 	staticHandler.Register(app.router)
 
-	productsHandler := products.NewProductHandler(logger)
+	productsHandler := products.NewProductHandler(logger, productService)
 	productsHandler.Register(app.router)
+
+	adminHandler := admin.NewAdminHandler(logger, productService)
+	adminHandler.Register(app.router)
+
+	app.router.NotFoundHandler = notfound.NotFoundHandler()
 
 	return &app, nil
 }

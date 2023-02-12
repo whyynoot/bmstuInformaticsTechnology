@@ -1,102 +1,105 @@
 package products
 
 import (
+	"bmstuInformaticsTechnologies/internal/api"
 	"bmstuInformaticsTechnologies/internal/product_service"
 	"bmstuInformaticsTechnologies/pkg/logging"
 	"github.com/gorilla/mux"
 	"go.uber.org/zap"
 	"html/template"
 	"net/http"
-	"strings"
 )
 
 const (
+	BaseApiPath = "/api"
+
 	ListAllProductRURL   = "/all"
 	ListAllProductMethod = "GET"
 
 	ListProductURL    = "/product/{product_name}"
 	ListProductMethod = "GET"
+
+	DeleteProductByID   = BaseApiPath + "/delete/{product_id}"
+	DeleteProductMethod = "DELETE"
 )
 
 type Handler struct {
-	// + PRODUCT SERVICE
-	logger   logging.LoggerInterface
-	products map[string]product_service.Product
+	logger         logging.LoggerInterface
+	productService product_service.ProductServiceInterface
 }
 
-// TODO: Error handling
-
-func NewProductHandler(logger logging.LoggerInterface) *Handler {
-	h := Handler{
-		logger: logger,
+func NewProductHandler(logger logging.LoggerInterface, productService product_service.ProductServiceInterface) *Handler {
+	return &Handler{
+		logger:         logger,
+		productService: productService,
 	}
-
-	// FOR FIRST LAB BREAKER
-	products := make(map[string]product_service.Product)
-	products["milk"] = product_service.Product{
-		Name:        "Milk",
-		Description: "2%",
-		Price:       100,
-		Image:       "/static/milk.jpg",
-		Stock:       10,
-	}
-	products["egg"] = product_service.Product{
-		Name:        "Egg",
-		Description: "10 in a package",
-		Price:       110,
-		Image:       "/static/egg.jpg",
-		Stock:       10,
-	}
-
-	h.products = products
-	// TODO: add service
-	return &h
 }
 
 func (h *Handler) Register(router *mux.Router) {
-	router.HandleFunc(ListAllProductRURL, h.ListAllProducts).Methods(ListAllProductMethod)
-	router.HandleFunc(ListProductURL, h.ListProduct).Methods(ListProductMethod)
+	router.HandleFunc(ListAllProductRURL, api.Middleware(h.ListAllProducts)).Methods(ListAllProductMethod)
+	router.HandleFunc(ListProductURL, api.Middleware(h.ListProduct)).Methods(ListProductMethod)
+	router.HandleFunc(DeleteProductByID, api.Middleware(h.DeleteProduct)).Methods(DeleteProductMethod)
 }
 
-func (h *Handler) ListAllProducts(w http.ResponseWriter, req *http.Request) {
+func (h *Handler) ListAllProducts(w http.ResponseWriter, req *http.Request) error {
+	products, err := h.productService.GetProducts()
+	if err != nil {
+		h.logger.Error("unable to get products", zap.Error(err))
+	}
+
 	ts, err := template.ParseFiles("./templates/all.page.tmpl")
 	if err != nil {
-		return
+		h.logger.Error("template parse error", zap.Any("error", err))
+		return api.NewAppError("tmpl errors", http.StatusInternalServerError)
 	}
 
-	err = ts.Execute(w, h.products)
+	err = ts.Execute(w, products)
 	if err != nil {
-		w.WriteHeader(501)
+		h.logger.Error("template execute error", zap.Any("error", err))
+		return api.NewAppError("tmpl error", http.StatusInternalServerError)
 	}
+
+	return nil
 }
 
-func (h *Handler) ListProduct(w http.ResponseWriter, req *http.Request) {
+func (h *Handler) ListProduct(w http.ResponseWriter, req *http.Request) error {
 	RequestedProduct := mux.Vars(req)["product_name"]
-	product, ok := h.products[strings.ToLower(RequestedProduct)]
-	if !ok {
-		ts, err := template.ParseFiles("./templates/notfound.page.tmpl")
-		if err != nil {
-			h.logger.Error("error", zap.Any("error", err))
-			w.WriteHeader(501)
-			return
-		}
-		w.WriteHeader(404)
-		err = ts.Execute(w, nil)
-		if err != nil {
-			h.logger.Error("error", zap.Any("error", err))
-			w.WriteHeader(501)
-			return
-		}
+	product, err := h.productService.GetProduct(RequestedProduct)
+	if err != nil {
+		h.logger.Error("unable to get product form database", zap.Error(err))
+		return api.ErrNotFound
 	}
 
 	ts, err := template.ParseFiles("./templates/product.page.tmpl")
 	if err != nil {
-		h.logger.Error("error", zap.Any("error", err))
+		h.logger.Error("template parse error", zap.Any("error", err))
+		return api.NewAppError("tmpl errors", http.StatusInternalServerError)
 	}
 
-	err = ts.Execute(w, product)
+	err = ts.Execute(w, *product)
 	if err != nil {
-		w.WriteHeader(501)
-		h.logger.Error("error", zap.Any("error", err))
+		h.logger.Error("template execute error", zap.Any("error", err))
+		return api.NewAppError("tmpl errors", http.StatusInternalServerError)
 	}
+
+	return nil
+}
+
+func (h *Handler) DeleteProduct(w http.ResponseWriter, req *http.Request) error {
+	RequestedProduct := mux.Vars(req)["product_id"]
+	err := h.productService.DeleteProductByID(RequestedProduct)
+	if err != nil {
+		h.logger.Error("unable to delete product form database", zap.Error(err))
+		return api.APIError("unable to delete", http.StatusInternalServerError)
+	}
+
+	var resp ProductDeleteResponse
+	resp.Status = "OK"
+	err = api.RenderJSONResponse(w, resp, http.StatusOK)
+	if err != nil {
+		h.logger.Error("unable to write response", zap.Error(err))
+		return api.APIError("unable to write response", http.StatusInternalServerError)
+	}
+
+	return nil
 }

@@ -1,0 +1,7 @@
+BEGIN;
+
+DROP TABLE IF EXISTS public.user CASCADE;
+DROP TABLE IF EXISTS public.product CASCADE;
+DROP TABLE IF EXISTS public.category CASCADE;
+
+END;

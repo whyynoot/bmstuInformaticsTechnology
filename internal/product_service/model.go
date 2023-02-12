@@ -1,16 +1,21 @@
 package product_service
 
-type Product struct {
-	Name        string `json:"name"`
-	Description string `json:"description"`
-	Price       int    `json:"price"`
-	Image       string `json:"image"`
-	Stock       int    `json:"stock"`
+// ProductStorage represents product in system with all information about it
+type ProductStorage struct {
+	ID          string
+	NameRu      string
+	ApiName     string
+	Description string
+	ImagePath   string
+	Price       int64
+	CategoryID  int
 }
 
-type ClientProduct struct {
-	Name        string `json:"name"`
+// UserProduct represents only a product information only for user purpose
+type UserProduct struct {
+	NameRu      string `json:"name"`
+	ApiName     string `json:"api_name"`
 	Description string `json:"description"`
 	Price       int    `json:"price"`
-	Image       string `json:"image"`
+	ImagePath   string `json:"image_path"`
 }

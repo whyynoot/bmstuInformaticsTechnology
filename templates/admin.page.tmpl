@@ -27,6 +27,21 @@
         }
     }
 </script>
+
+<script>
+    const DELETE_API_LINK = "/api/delete/";
+
+    async function DeleteProductById(id) {
+        let url = DELETE_API_LINK + id
+        let response = await fetch(url, {'method': 'DELETE'});
+        let json = await response.json();
+        if (response.ok) {
+           alert("Успешно удаленно, status:", response.status);
+        } else {
+           alert("Ошибка, message:", response.message);
+        }
+   };
+</script>
 <body>
 <div class="input-group mb-3">
     <input type="number" id="showCount" class="form-control" placeholder="Введите количество товаров" aria-label="Введите количество товаров" aria-describedby="basic-addon2">
@@ -50,7 +65,10 @@
                 <div class="card-body">
                     <h5 class="card-title">{{ .NameRu }}</h5>
                     <p class="card-text">{{ .Price }} РУБ</p>
-                    <a href="/product/{{.ApiName}}" class="btn btn-primary stretched-link">Подробнее</a>
+                    <div class="btn-wrapper text-center d-flex justify-content-between">
+                        <a href="/product/{{.ApiName}}" class="btn btn-warning">Подробнее</a>
+                        <a class="btn btn-secondary  btn-sm text-white d-flex align-items-center" onclick="DeleteProductById({{.ID}})">Delete</a>
+                    </div>
                 </div>
             </div>
         </div>

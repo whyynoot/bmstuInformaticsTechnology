@@ -1,8 +1,7 @@
 package product_service
 
 type ProductServiceInterface interface {
-	AddProduct()
-	NewProduct()
-	UpdateProduct()
-	DeleteProduct()
+	GetProducts() ([]ProductStorage, error)
+	GetProduct(apiName string) (*ProductStorage, error)
+	DeleteProductByID(id string) error
 }
