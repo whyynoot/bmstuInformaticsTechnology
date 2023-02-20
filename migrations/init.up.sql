@@ -39,15 +39,17 @@ CREATE TABLE public.user
 (
     id          UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     username    TEXT NOT NULL UNIQUE,
-    password    TEXT NOT NULL
+    password    TEXT NOT NULL,
+    admin       BOOL
 );
 
 -- DATA --
 
-INSERT INTO public.user (id, username, password) VALUES (
+INSERT INTO public.user (id, username, password, admin) VALUES (
     DEFAULT,
    'admin',
-   crypt('admin', gen_salt('bf'))
+   crypt('admin', gen_salt('bf')),
+    TRUE
 );
 
 INSERT INTO public.category (name_ru, api_name) VALUES ('Молочные продукты', 'milk_products');

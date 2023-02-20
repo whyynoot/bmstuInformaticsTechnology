@@ -1,11 +1,16 @@
 package app
 
 import (
+	"bmstuInformaticsTechnologies/internal/category_service"
 	"bmstuInformaticsTechnologies/internal/configuration"
 	"bmstuInformaticsTechnologies/internal/handlers/admin"
+	"bmstuInformaticsTechnologies/internal/handlers/auth"
+	"bmstuInformaticsTechnologies/internal/handlers/categories"
 	"bmstuInformaticsTechnologies/internal/handlers/products"
 	"bmstuInformaticsTechnologies/internal/product_service"
+	"bmstuInformaticsTechnologies/internal/user_service"
 	"bmstuInformaticsTechnologies/pkg/client/postrgresql"
+	"bmstuInformaticsTechnologies/pkg/handlers/api_docs"
 	"bmstuInformaticsTechnologies/pkg/handlers/notfound"
 	"bmstuInformaticsTechnologies/pkg/handlers/ping"
 	"bmstuInformaticsTechnologies/pkg/handlers/static"
@@ -18,15 +23,19 @@ import (
 	"time"
 )
 
+// @title Product Service
+// @version 1.0.0
+// @BasePath /
+
+const (
+	BaseApiPath = "/api"
+)
+
 // Application struct is main struct containing services and needs
 type Application struct {
 	logger logging.LoggerInterface
 	router *mux.Router
 	server *http.Server
-
-	// api, http.Server + mux.Router ?
-	// database, dbManager, may move to pkg
-	//
 }
 
 // NewApplication is a constructor for our application based on configuration.Config
@@ -51,6 +60,8 @@ func NewApplication(cfg *configuration.Config, logger logging.LoggerInterface) (
 	}
 
 	productService := product_service.NewProductService(app.logger, dbClient)
+	categoryService := category_service.NewCategoryService(app.logger, dbClient)
+	userService := user_service.NewUserService(app.logger, dbClient)
 
 	// Starting handlers registration
 	pingHandler := ping.Handler{}
@@ -64,6 +75,15 @@ func NewApplication(cfg *configuration.Config, logger logging.LoggerInterface) (
 
 	adminHandler := admin.NewAdminHandler(logger, productService)
 	adminHandler.Register(app.router)
+
+	categoriesHandler := categories.NewCategoriesHandler(logger, categoryService)
+	categoriesHandler.Register(app.router)
+
+	documentationHandler := api_docs.Handler{}
+	documentationHandler.Register(app.router)
+
+	userHandler := auth.NewAuthHandler(logger, userService)
+	userHandler.Register(app.router)
 
 	app.router.NotFoundHandler = notfound.NotFoundHandler()
 

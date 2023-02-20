@@ -1,0 +1,386 @@
+basePath: /
+definitions:
+  api.AppError:
+    properties:
+      code:
+        type: integer
+      message:
+        type: string
+    type: object
+  auth.AuthorizationResponse:
+    properties:
+      refresh_token:
+        type: string
+      token:
+        type: string
+    type: object
+  auth.UserLoginRequest:
+    properties:
+      password:
+        type: string
+      username:
+        type: string
+    type: object
+  categories.CategoryCreateResponse:
+    properties:
+      status:
+        type: string
+    type: object
+  categories.CategoryList:
+    properties:
+      categories:
+        items:
+          $ref: '#/definitions/category_service.UserCategory'
+        type: array
+      status:
+        type: string
+    type: object
+  categories.CategoryUpdateResponse:
+    properties:
+      status:
+        type: string
+    type: object
+  category_service.CategoryCreateDTO:
+    properties:
+      api_name:
+        type: string
+      name_ru:
+        type: string
+    type: object
+  category_service.CategoryUpdateDTO:
+    properties:
+      api_name:
+        type: string
+      id:
+        type: integer
+      name_ru:
+        type: string
+    type: object
+  category_service.UserCategory:
+    properties:
+      api_name:
+        type: string
+      name_ru:
+        type: string
+    type: object
+  product_service.NewProductDTO:
+    properties:
+      api_name:
+        type: string
+      category_id:
+        type: integer
+      description:
+        type: string
+      image_path:
+        type: string
+      name:
+        type: string
+      price:
+        type: integer
+    type: object
+  product_service.ProductUpdateDTO:
+    properties:
+      api_name:
+        type: string
+      category_id:
+        type: integer
+      description:
+        type: string
+      id:
+        type: string
+      image_path:
+        type: string
+      name:
+        type: string
+      price:
+        type: integer
+    type: object
+  product_service.UserProduct:
+    properties:
+      api_name:
+        type: string
+      description:
+        type: string
+      image_path:
+        type: string
+      name:
+        type: string
+      price:
+        type: integer
+    type: object
+  products.ProductCreateResponse:
+    properties:
+      status:
+        type: string
+    type: object
+  products.ProductDeleteResponse:
+    properties:
+      status:
+        type: string
+    type: object
+  products.ProductList:
+    properties:
+      count:
+        type: integer
+      products:
+        items:
+          $ref: '#/definitions/product_service.UserProduct'
+        type: array
+      status:
+        type: string
+    type: object
+  user_service.UserDTO:
+    properties:
+      password:
+        type: string
+      username:
+        type: string
+    type: object
+info:
+  contact: {}
+  title: Product Service
+  version: 1.0.0
+paths:
+  /api/{category_api_name}/products:
+    get:
+      description: Getting a list of user products based on category
+      parameters:
+      - description: Category
+        in: path
+        name: category_api_name
+        required: true
+        type: string
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/products.ProductList'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/api.AppError'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/api.AppError'
+      summary: Getting a list of user products based on category
+      tags:
+      - Product
+  /api/auth/login:
+    post:
+      description: Log in with username and password
+      parameters:
+      - description: User
+        in: body
+        name: product
+        required: true
+        schema:
+          $ref: '#/definitions/auth.UserLoginRequest'
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/auth.AuthorizationResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/api.AppError'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/api.AppError'
+      summary: Log in
+      tags:
+      - User
+  /api/auth/signup:
+    post:
+      description: Sign up a new user with username and password
+      parameters:
+      - description: User
+        in: body
+        name: product
+        required: true
+        schema:
+          $ref: '#/definitions/user_service.UserDTO'
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/auth.AuthorizationResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/api.AppError'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/api.AppError'
+      summary: Signing up new user
+      tags:
+      - User
+  /api/categories:
+    get:
+      description: Get a list of all categories
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/categories.CategoryList'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/api.AppError'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/api.AppError'
+      summary: Get a list of all categories
+      tags:
+      - Category
+  /api/categories/create:
+    post:
+      description: CreateNewProduct with json struct
+      parameters:
+      - description: Category
+        in: body
+        name: product
+        required: true
+        schema:
+          $ref: '#/definitions/category_service.CategoryCreateDTO'
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/categories.CategoryCreateResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/api.AppError'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/api.AppError'
+      summary: Creating New Category
+      tags:
+      - Category
+  /api/categories/update:
+    patch:
+      description: |-
+        Update any field / fields of category
+        Only ID is required
+      parameters:
+      - description: Category
+        in: body
+        name: product
+        schema:
+          $ref: '#/definitions/category_service.CategoryUpdateDTO'
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/categories.CategoryUpdateResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/api.AppError'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/api.AppError'
+      summary: Updating category information
+      tags:
+      - Category
+  /api/product/create:
+    post:
+      description: CreateNewProduct with json struct
+      parameters:
+      - description: Product
+        in: body
+        name: product
+        required: true
+        schema:
+          $ref: '#/definitions/product_service.NewProductDTO'
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/products.ProductCreateResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/api.AppError'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/api.AppError'
+      summary: Creating New Product
+      tags:
+      - Product
+  /api/product/delete:
+    delete:
+      description: Delete product by UUID
+      parameters:
+      - description: UUID of product
+        in: path
+        name: id
+        required: true
+        type: string
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/products.ProductDeleteResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/api.AppError'
+      summary: Deletion of product
+      tags:
+      - Product
+  /api/product/update:
+    patch:
+      description: |-
+        Update any field / fields of product
+        Only ID is required
+      parameters:
+      - description: Product
+        in: body
+        name: product
+        schema:
+          $ref: '#/definitions/product_service.ProductUpdateDTO'
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/products.ProductCreateResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/api.AppError'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/api.AppError'
+      summary: Updating product information
+      tags:
+      - Product
+  /api/products:
+    get:
+      description: Getting a list of user products
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/products.ProductList'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/api.AppError'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/api.AppError'
+      summary: Getting a list of user products
+      tags:
+      - Product
+swagger: "2.0"
