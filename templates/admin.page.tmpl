@@ -36,9 +36,9 @@
         let response = await fetch(url, {'method': 'DELETE'});
         let json = await response.json();
         if (response.ok) {
-           alert("Успешно удаленно, status:", response.status);
+           alert("Успешно удаленно");
         } else {
-           alert("Ошибка, message:", response.message);
+           alert("Ошибка");
         }
    };
 </script>

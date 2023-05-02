@@ -3,3 +3,5 @@ docker-compose.yml
 /var/
 /calculator/
 /build/
+
+/ecom/node_modules

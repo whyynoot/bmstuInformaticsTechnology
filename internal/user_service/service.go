@@ -39,15 +39,23 @@ func (u *UserService) GetUserByUsernameAndPassword(username, password string) (*
 		return nil, api.UnauthorizedError("wrong pass or wrong user")
 	}
 
-	return &User{
-		Username: username,
-		Password: password,
-		Admin:    *adminBool,
-	}, nil
+	if adminBool == nil {
+		return &User{
+			Username: username,
+			Password: password,
+			Admin:    false,
+		}, nil
+	} else {
+		return &User{
+			Username: username,
+			Password: password,
+			Admin:    *adminBool,
+		}, nil
+	}
 }
 
 func (u *UserService) Create(dto UserDTO) (*User, error) {
-	query := fmt.Sprintf("INSERT INTO public.user (username, password) VALUES ('%v', crypt('%v', gen_salt('bf')))",
+	query := fmt.Sprintf("INSERT INTO public.user (username, password, admin) VALUES ('%v', crypt('%v', gen_salt('bf')), FALSE)",
 		dto.Username, dto.Password)
 	_, err := u.DataBaseClient.Exec(context.Background(), query)
 	if err != nil {

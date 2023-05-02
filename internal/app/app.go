@@ -93,11 +93,6 @@ func NewApplication(cfg *configuration.Config, logger logging.LoggerInterface) (
 // Run is an entry point to start our application
 func (app *Application) Run() {
 	// Restarting application on panic
-	defer func() {
-		if err := recover(); err != nil {
-			app.logger.Error("Fatal error, recovered from panic", zap.Any("error", err))
-		}
-	}()
 
 	app.logger.Info("Successfully initialized, starting server")
 	app.logger.Fatal(app.server.ListenAndServe().Error())
